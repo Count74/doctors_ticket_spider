@@ -1,3 +1,3 @@
 @echo off
-F:\work\Python\res\DoctorSpider\venv\Scripts\python.exe F:\work\Python\res\DoctorSpider\main.py
+%~dp0\venv\Scripts\python.exe %~dp0\main.py
 pause

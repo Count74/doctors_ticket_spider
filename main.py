@@ -43,13 +43,17 @@ while True:
     print(f'Проверка талонов № {check_counter}')
     r = http.request('GET', URL, headers=headers)
 
-    if str(r.data).count(SEARCH_STRING) > STRING_COUNT:
+    if r.status != 200:
+        print(f'Не могу соединится с сервером, ошибка {r.status}')
+    elif str(r.data).count(SEARCH_STRING) < STRING_COUNT:
+        print(f'Ошибка парсинга')
+    elif str(r.data).count(SEARCH_STRING) > STRING_COUNT:
         call_nady()
         print('Внимание, есть талоны!')
         caught_counter += 1
     else:
         if caught_counter:
             ticked_caught_string = f'но были {caught_counter} раз'
-        print(f'Талонов нет, {ticked_caught_string}. Следущая проверка через {TIMEOUT} секунд')
+        print(f'Талонов нет, {ticked_caught_string}. Следущая проверка через {TIMEOUT} секунд.')
     check_counter += 1
     time.sleep(TIMEOUT)
