@@ -1,19 +1,13 @@
 import time
 import plyer
 import urllib3
+import datetime
 
 URL = "https://kdcd.spb.ru/samozapis/doctors_lpu.php?docid=82&docname=%D0%9B%D0%B5%D0%B4%D0%B5%D0%BD%D1%86%D0%BE%D0%B2%D0%B0%20%D0%94.%20%D0%92.&cab=230"
 TIMEOUT = 60
 SEARCH_STRING = 'count_numbs_yellow'
 STRING_COUNT = 2
 
-
-def call_nady():
-    plyer.notification.notify(
-        message='Есть талоны на прием',
-        app_name='Доктор, ау',
-        app_icon='attention.ico',
-        title='Надя, Ура', )
 
 headers = {
     'Host': 'kdcd.spb.ru',
@@ -34,26 +28,57 @@ headers = {
 }
 
 
-http = urllib3.PoolManager()
-check_counter = 1
-caught_counter = 0
-ticked_caught_string = "и еще не было"
+def call_nady():
+    plyer.notification.notify(
+        message='Есть талоны на прием',
+        app_name='Доктор, ау',
+        app_icon='attention.ico',
+        title='Надя, Ура', )
 
-while True:
-    print(f'Проверка талонов № {check_counter}')
-    r = http.request('GET', URL, headers=headers)
 
-    if r.status != 200:
-        print(f'Не могу соединится с сервером, ошибка {r.status}')
-    elif str(r.data).count(SEARCH_STRING) < STRING_COUNT:
-        print(f'Ошибка парсинга')
-    elif str(r.data).count(SEARCH_STRING) > STRING_COUNT:
-        call_nady()
-        print('Внимание, есть талоны!')
-        caught_counter += 1
-    else:
-        if caught_counter:
-            ticked_caught_string = f'но были {caught_counter} раз'
-        print(f'Талонов нет, {ticked_caught_string}. Следущая проверка через {TIMEOUT} секунд.')
-    check_counter += 1
-    time.sleep(TIMEOUT)
+def print_log(log_sting):
+    print(log_sting)
+    today = datetime.datetime.today()
+    filename = f'log_{today.date()}.log'
+    with open(filename, 'a') as file:
+        file.write(f'{today.strftime("%Y-%m-%d %H:%M:%S")} - {log_sting}\n')
+
+
+def main():
+    http = urllib3.PoolManager()
+    check_counter = 0
+    caught_counter = 0
+    ticked_caught_string = "и еще не было"
+
+    while True:
+        if check_counter:
+            time.sleep(TIMEOUT)
+        check_counter += 1
+
+        print(f'Проверка талонов № {check_counter}')
+        try:
+            r = http.request('GET', URL, headers=headers)
+        except Exception as e:
+            print_log(f'ОШИБКА: {e.__class__}')
+            continue
+
+        if r.status != 200:
+            print_log(f'Ошибка соединения, ответ сервера {r.status}')
+            continue
+
+        if str(r.data).count(SEARCH_STRING) < STRING_COUNT:
+            print_log(f'Ошибка парсинга')
+            continue
+
+        if str(r.data).count(SEARCH_STRING) > STRING_COUNT:
+            call_nady()
+            print_log('Внимание, есть талоны!')
+            caught_counter += 1
+        else:
+            if caught_counter:
+                ticked_caught_string = f'но были {caught_counter} раз'
+            print(f'Талонов нет, {ticked_caught_string}. Следущая проверка через {TIMEOUT} секунд.')
+
+
+if __name__ == '__main__':
+    main()
