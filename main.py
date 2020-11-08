@@ -2,9 +2,11 @@ import time
 import plyer
 import urllib3
 import datetime
+from random import randrange
 
 URL = "https://kdcd.spb.ru/samozapis/doctors_lpu.php?docid=82&docname=%D0%9B%D0%B5%D0%B4%D0%B5%D0%BD%D1%86%D0%BE%D0%B2%D0%B0%20%D0%94.%20%D0%92.&cab=230"
 TIMEOUT = 60
+RANDOM_RANGE = 10
 SEARCH_STRING = 'count_numbs_yellow'
 STRING_COUNT = 2
 
@@ -52,7 +54,7 @@ def main():
 
     while True:
         if check_counter:
-            time.sleep(TIMEOUT)
+            time.sleep(TIMEOUT + randrange(RANDOM_RANGE + 1))
         check_counter += 1
 
         print(f'Проверка талонов № {check_counter}')
@@ -77,7 +79,8 @@ def main():
         else:
             if caught_counter:
                 ticked_caught_string = f'но были {caught_counter} раз'
-            print(f'Талонов нет, {ticked_caught_string}. Следущая проверка через {TIMEOUT} секунд.')
+            print(f'Талонов нет, {ticked_caught_string}. '
+                  f'Следущая проверка примерно через {TIMEOUT} - {TIMEOUT + RANDOM_RANGE} секунд.')
 
 
 if __name__ == '__main__':
